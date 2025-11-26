@@ -1,6 +1,6 @@
 {
-  "name": "wxt-react-starter",
-  "description": "manifest.json description",
+  "name": "npm-version-stats-extension",
+  "description": "Browser extension that shows npm package version usage statistics",
   "private": true,
   "version": "0.0.0",
   "type": "module",
