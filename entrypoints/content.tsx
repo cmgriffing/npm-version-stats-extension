@@ -12,7 +12,7 @@ export default defineContentScript({
     const maxRetries = 10;
     const retryDelay = 1000; // 1 second
     
-    const tryInjectStats = () => {
+    const tryInjectStats = async () => {
       console.log(`🔄 Attempting to inject stats (attempt ${retryCount + 1}/${maxRetries})`);
       
       const currentTagsSection = findCurrentTagsSection();
@@ -23,7 +23,7 @@ export default defineContentScript({
       
       if (currentTagsSection && versionsTable && !document.getElementById('npm-version-stats-root')) {
         console.log('✅ Both sections found, injecting stats...');
-        injectVersionStats();
+        await injectVersionStats();
         return true;
       }
       
@@ -45,13 +45,13 @@ export default defineContentScript({
     });
 
     // Retry logic with increasing delays
-    const retryInjection = () => {
+    const retryInjection = async () => {
       if (retryCount >= maxRetries) {
         console.log('❌ Max retries reached, giving up');
         return;
       }
       
-      const success = tryInjectStats();
+      const success = await tryInjectStats();
       if (!success) {
         retryCount++;
         console.log(`⏳ Waiting ${retryDelay}ms before retry ${retryCount}/${maxRetries}`);
@@ -92,7 +92,17 @@ function findVersionsTable() {
   // First, run comprehensive debug to understand the page structure
   debugPageStructure();
   
-  // Find the table with the most rows (that's likely the versions table)
+  // Look specifically for Version History table using aria-labelledby attribute
+  let versionsTable = document.querySelector('table[aria-labelledby="version-history"]');
+  
+  if (versionsTable) {
+    console.log('✅ Found Version History table by aria-labelledby attribute');
+    return versionsTable;
+  }
+  
+  console.log('⚠️ Version History table not found by aria-labelledby, falling back to table detection...');
+  
+  // Fallback: Find the table with the most rows that contains version data
   const allTables = document.querySelectorAll('table');
   console.log(`📊 Found ${allTables.length} tables on the page`);
   
@@ -121,8 +131,8 @@ function findVersionsTable() {
     return bestTable;
   }
   
-  // Fallback: try any table with version patterns
-  console.log('🔄 Fallback: searching for any table with version patterns...');
+  // Final fallback: try any table with version patterns
+  console.log('🔄 Final fallback: searching for any table with version patterns...');
   for (const table of allTables) {
     const tableText = table.textContent || '';
     if (/\d+\.\d+\.\d+/.test(tableText) && /[\d,]+/.test(tableText)) {
@@ -135,7 +145,7 @@ function findVersionsTable() {
   return null;
 }
 
-function injectVersionStats() {
+async function injectVersionStats() {
   const currentTagsSection = findCurrentTagsSection();
   if (!currentTagsSection || document.getElementById('npm-version-stats-root')) {
     return;
@@ -145,7 +155,7 @@ function injectVersionStats() {
   const statsContainer = document.createElement('div');
   statsContainer.id = 'npm-version-stats-root';
   
-  // Insert before the Current Tags section
+  // Insert before Current Tags section
   currentTagsSection.parentNode?.insertBefore(statsContainer, currentTagsSection);
   
   // Render React app

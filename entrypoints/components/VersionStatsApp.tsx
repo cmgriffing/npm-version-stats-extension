@@ -22,7 +22,7 @@ export function VersionStatsApp() {
         // Run debug first
         debugPageStructure();
         
-        const data = scrapeVersionData();
+        const data = await scrapeVersionData();
         console.log(`📊 Scraped ${data.length} versions`);
         
         if (data.length === 0) {
