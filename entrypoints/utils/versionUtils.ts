@@ -12,53 +12,89 @@ export function parseVersion(version: string): { major: number; minor: number; p
 }
 
 export function scrapeVersionData(): VersionData[] {
-  // Try multiple possible selectors for the versions table
-  let versionRows: NodeListOf<Element> | null = null;
+  console.log('🔍 Starting version data scraping...');
   
-  // Try the most specific selector first
-  versionRows = document.querySelectorAll('table[data-testid="versions"] tbody tr');
+  // Find versions table (should be the larger table with more rows)
+  const allTables = document.querySelectorAll('table');
+  console.log(`📊 Found ${allTables.length} tables on the page`);
   
-  // Fallback to other possible selectors
-  if (versionRows.length === 0) {
-    versionRows = document.querySelectorAll('table.versions tbody tr');
-  }
+  let versionsTable = null;
+  let maxRows = 0;
   
-  if (versionRows.length === 0) {
-    versionRows = document.querySelectorAll('table tbody tr');
-  }
-
+  allTables.forEach((table, index) => {
+    const rows = table.querySelectorAll('tbody tr, tr');
+    console.log(`📋 Table ${index}: ${rows.length} rows`);
+    
+    if (rows.length > maxRows) {
+      maxRows = rows.length;
+      versionsTable = table;
+    }
+  });
+  
   const versionData: VersionData[] = [];
 
-  versionRows.forEach((row) => {
-    const cells = row.querySelectorAll('td');
-    if (cells.length >= 2) {
-      const versionCell = cells[0];
-      const usageCell = cells[1];
-      
-      const version = versionCell.textContent?.trim();
-      const usageText = usageCell.textContent?.trim();
-      
-      if (version && usageText) {
-        const usageMatch = usageText.match(/([\d.]+)%/);
-        if (usageMatch) {
-          const usage = parseFloat(usageMatch[1]);
-          
-          // Skip versions with 0.0% usage
-          if (usage > 0) {
-            const { major, minor, patch } = parseVersion(version);
-            versionData.push({
-              version,
-              usage,
-              major,
-              minor,
-              patch
-            });
+  if (versionsTable) {
+    console.log(`✅ Using versions table with ${maxRows} rows`);
+    
+    const rows = versionsTable.querySelectorAll('tbody tr, tr');
+    const allDownloadCounts: number[] = [];
+    const rowData: Array<{version: string, downloads: number, row: Element}> = [];
+    
+    // First pass: extract all data and collect download counts
+    rows.forEach((row, index) => {
+      const cells = row.querySelectorAll('td, th');
+      if (cells.length >= 2) {
+        const version = cells[0].textContent?.trim();
+        const downloadsText = cells[1].textContent?.trim();
+        
+        console.log(`📝 Row ${index}: version="${version}", downloads="${downloadsText}"`);
+        
+        if (version && downloadsText) {
+          // Parse download count (remove commas, convert to number)
+          const downloadsMatch = downloadsText.match(/[\d,]+/);
+          if (downloadsMatch) {
+            const downloads = parseInt(downloadsMatch[0].replace(/,/g, ''), 10);
+            
+            if (!isNaN(downloads) && downloads > 0) {
+              allDownloadCounts.push(downloads);
+              rowData.push({ version, downloads, row });
+            }
+          } else {
+            console.log(`⚠️ Could not parse downloads from: "${downloadsText}"`);
           }
         }
       }
-    }
-  });
+    });
+    
+    // Calculate total downloads for percentage calculation
+    const totalDownloads = allDownloadCounts.reduce((sum, count) => sum + count, 0);
+    console.log(`📊 Total downloads: ${totalDownloads.toLocaleString()}`);
+    
+    // Second pass: calculate percentages and create version data
+    rowData.forEach(({ version, downloads }) => {
+      const usage = totalDownloads > 0 ? (downloads / totalDownloads) * 100 : 0;
+      
+      console.log(`📈 ${version}: ${downloads.toLocaleString()} downloads (${usage.toFixed(2)}%)`);
+      
+      // Skip versions with 0.0% usage
+      if (usage > 0) {
+        const { major, minor, patch } = parseVersion(version);
+        versionData.push({
+          version,
+          usage,
+          major,
+          minor,
+          patch
+        });
+      }
+    });
+    
+  } else {
+    console.log('❌ No versions table found');
+  }
 
+  console.log(`📈 Final result: ${versionData.length} valid versions found`);
+  
   return versionData.sort((a, b) => {
     if (a.major !== b.major) return b.major - a.major;
     if (a.minor !== b.minor) return b.minor - a.minor;

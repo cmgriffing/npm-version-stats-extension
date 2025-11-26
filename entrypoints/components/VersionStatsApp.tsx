@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { VersionData, VersionGroup } from '../types/version';
 import { scrapeVersionData, groupVersions } from '../utils/versionUtils';
+import { debugPageStructure } from '../utils/debugUtils';
 import { StatsTabs } from './StatsTabs';
 import { LoadingSpinner } from './LoadingSpinner';
 
@@ -14,18 +15,31 @@ export function VersionStatsApp() {
   useEffect(() => {
     const loadData = async () => {
       try {
+        console.log('🔄 Starting to load version data...');
         setLoading(true);
+        setError(null);
+        
+        // Run debug first
+        debugPageStructure();
+        
         const data = scrapeVersionData();
+        console.log(`📊 Scraped ${data.length} versions`);
+        
         if (data.length === 0) {
-          setError('No version data found');
+          console.log('❌ No version data found');
+          setError('No version data found. Check console for debugging info.');
           return;
         }
+        
+        console.log('✅ Version data loaded successfully:', data);
         setVersionData(data);
+        
         const grouped = groupVersions(data);
+        console.log('📋 Grouped data:', grouped);
         setGroupedData(grouped);
       } catch (err) {
-        setError('Failed to load version data');
-        console.error('Error loading version data:', err);
+        console.error('❌ Error loading version data:', err);
+        setError(`Failed to load version data: ${err instanceof Error ? err.message : 'Unknown error'}`);
       } finally {
         setLoading(false);
       }

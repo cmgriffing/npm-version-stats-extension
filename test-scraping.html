@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test NPM Version Scraping</title>
+</head>
+<body>
+    <h2>Current Tags</h2>
+    
+    <table>
+        <thead>
+            <tr>
+                <th>Version</th>
+                <th>Downloads</th>
+                <th>Usage</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>3.4.21</td>
+                <td>1,234,567</td>
+                <td>45.2%</td>
+            </tr>
+            <tr>
+                <td>3.4.20</td>
+                <td>987,654</td>
+                <td>23.1%</td>
+            </tr>
+            <tr>
+                <td>3.3.7</td>
+                <td>456,789</td>
+                <td>12.5%</td>
+            </tr>
+            <tr>
+                <td>3.2.47</td>
+                <td>123,456</td>
+                <td>8.3%</td>
+            </tr>
+            <tr>
+                <td>2.7.16</td>
+                <td>45,678</td>
+                <td>3.1%</td>
+            </tr>
+            <tr>
+                <td>1.0.0</td>
+                <td>1,234</td>
+                <td>0.0%</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <script>
+        // Test the scraping logic
+        console.log('Testing version scraping logic...');
+        
+        // Simulate the parseVersion function
+        function parseVersion(version) {
+            const cleanVersion = version.replace(/^v/, '');
+            const parts = cleanVersion.split('.').map(part => parseInt(part, 10));
+            
+            return {
+                major: parts[0] || 0,
+                minor: parts[1] || 0,
+                patch: parts[2] || 0
+            };
+        }
+        
+        // Test parsing
+        console.log('Testing parseVersion:');
+        console.log('3.4.21 ->', parseVersion('3.4.21'));
+        console.log('2.7.16 ->', parseVersion('2.7.16'));
+        
+        // Test scraping
+        const versionRows = document.querySelectorAll('table tbody tr');
+        console.log(`Found ${versionRows.length} rows`);
+        
+        const versionData = [];
+        versionRows.forEach((row, index) => {
+            const cells = row.querySelectorAll('td');
+            if (cells.length >= 3) {
+                const version = cells[0].textContent.trim();
+                const usageText = cells[2].textContent.trim();
+                
+                console.log(`Row ${index}: version="${version}", usage="${usageText}"`);
+                
+                if (version && usageText) {
+                    const usageMatch = usageText.match(/([\d.]+)%/);
+                    if (usageMatch) {
+                        const usage = parseFloat(usageMatch[1]);
+                        
+                        if (usage > 0) {
+                            const { major, minor, patch } = parseVersion(version);
+                            versionData.push({
+                                version,
+                                usage,
+                                major,
+                                minor,
+                                patch
+                            });
+                        }
+                    }
+                }
+            }
+        });
+        
+        console.log('Final version data:', versionData);
+        console.log(`Total versions with >0% usage: ${versionData.length}`);
+    </script>
+</body>
+</html>
