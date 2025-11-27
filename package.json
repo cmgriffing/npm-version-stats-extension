@@ -1,16 +1,18 @@
 {
   "name": "npm-version-stats-extension",
-  "description": "Browser extension that shows npm package version usage statistics",
+  "description": "Browser extension that shows npm package version usage statistics inline on the npmjs.com package page in the versions tab",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.2",
   "type": "module",
   "scripts": {
     "dev": "wxt",
     "dev:firefox": "wxt -b firefox",
-    "build": "wxt build",
+    "build": "pnpm run \"/^build:.*/\"",
+    "build:chrome": "wxt build",
     "build:firefox": "wxt build -b firefox",
-    "zip": "wxt zip",
+    "zip": "pnpm run \"/^zip:.*/\"",
     "zip:firefox": "wxt zip -b firefox",
+    "zip:chrome": "wxt zip",
     "compile": "tsc --noEmit",
     "postinstall": "wxt prepare"
   },
