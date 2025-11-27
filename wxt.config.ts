@@ -8,7 +8,7 @@ export default defineConfig({
     name: "NPM Version Stats",
     description:
       "Show npm package version usage statistics inline on the npmjs.com package page in the versions tab",
-    version: "1.0.2",
+    version: "1.0.3",
     permissions: ["activeTab"],
     host_permissions: ["https://www.npmjs.com/package/*"],
     manifest_version: 3,

@@ -2,7 +2,7 @@
   "name": "npm-version-stats-extension",
   "description": "Browser extension that shows npm package version usage statistics inline on the npmjs.com package page in the versions tab",
   "private": true,
-  "version": "1.0.2",
+  "version": "1.0.3",
   "type": "module",
   "scripts": {
     "dev": "wxt",
