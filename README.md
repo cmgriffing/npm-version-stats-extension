@@ -19,6 +19,12 @@ A browser extension that displays npm package version usage statistics in an org
 
 ## Installation
 
+You can download the extension for your browser of choice:
+
+- [Chrome](https://chromewebstore.google.com/detail/npm-version-stats/dpalnhafdhjijpaokifllkolofkjddle)
+- [Firefox](https://addons.mozilla.org/en-US/firefox/addon/npm-version-stats/) (Pending Approval)
+- [Opera](https://addons.opera.com/en/extensions/details/npm-version-stats/)
+
 ### Development
 
 1. Clone this repository
